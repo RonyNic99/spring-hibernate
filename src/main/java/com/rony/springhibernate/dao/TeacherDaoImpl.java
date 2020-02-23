@@ -1,7 +1,9 @@
 package com.rony.springhibernate.dao;
 
 import com.rony.springhibernate.model.Teacher;
+import com.rony.springhibernate.model.TeacherSocialMedia;
 
+import java.util.Iterator;
 import java.util.List;
 
 public class TeacherDaoImpl extends AbstractSession implements TeacherDao {
@@ -22,12 +24,19 @@ public class TeacherDaoImpl extends AbstractSession implements TeacherDao {
 
 
     public Teacher findTeacherByName(String name) {
-      return (Teacher) getSession().createQuery("from Teacher where name = :name ").setParameter(name,name).uniqueResult();
+      return (Teacher) getSession().createQuery("from Teacher where name = :name ").setParameter("name",name).uniqueResult();
     }
 
     public void deleteTeacherById(Long IdTeacher_) {
         Teacher teacher = findTeacherById(IdTeacher_);
         if (teacher != null){
+            Iterator<TeacherSocialMedia> i = teacher.getTeacherSocialMedias().iterator();
+            while (i.hasNext()){
+                TeacherSocialMedia teacherSocialMedia = i.next();
+                i.remove();
+                getSession().delete(teacherSocialMedia);
+            }
+            teacher.getTeacherSocialMedias().clear();
             getSession().delete(teacher);
         }
     }

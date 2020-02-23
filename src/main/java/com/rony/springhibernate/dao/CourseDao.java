@@ -10,4 +10,7 @@ public interface CourseDao {
     void deleteCourseById(Long idCourse);
     void updateCourse(Course course);
     Course findCourseById(Long idCourse);
+    Course findCourseByName(String name);
+    List<Course> findCourseByIdTeacher(Long idTeacher);
+
 }

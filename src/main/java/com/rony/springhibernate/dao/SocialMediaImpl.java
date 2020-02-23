@@ -3,13 +3,16 @@ package com.rony.springhibernate.dao;
 import com.rony.springhibernate.model.SocialMedia;
 import com.rony.springhibernate.model.Teacher;
 import com.rony.springhibernate.model.TeacherSocialMedia;
+import org.springframework.stereotype.Repository;
 
+import javax.transaction.Transactional;
 import java.util.List;
-
+@Repository
+@Transactional
 public class SocialMediaImpl extends AbstractSession implements SocialMediaDao {
 
     @Override
-    public void saveTeacher(SocialMedia socialMedia) {
+    public void saveSocialMedia(SocialMedia socialMedia) {
         getSession().persist(socialMedia);
     }
 

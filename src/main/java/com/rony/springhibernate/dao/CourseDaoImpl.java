@@ -1,9 +1,12 @@
 package com.rony.springhibernate.dao;
 
 import com.rony.springhibernate.model.Course;
+import org.springframework.stereotype.Repository;
 
+import javax.transaction.Transactional;
 import java.util.List;
-
+@Repository
+@Transactional
 public class CourseDaoImpl extends AbstractSession implements CourseDao {
     @Override
     public void saveCourse(Course course) {

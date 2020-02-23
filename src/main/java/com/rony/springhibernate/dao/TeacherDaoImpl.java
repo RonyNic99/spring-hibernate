@@ -2,10 +2,13 @@ package com.rony.springhibernate.dao;
 
 import com.rony.springhibernate.model.Teacher;
 import com.rony.springhibernate.model.TeacherSocialMedia;
+import org.springframework.stereotype.Repository;
 
+import javax.transaction.Transactional;
 import java.util.Iterator;
 import java.util.List;
-
+@Repository
+@Transactional
 public class TeacherDaoImpl extends AbstractSession implements TeacherDao {
 
 

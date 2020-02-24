@@ -6,7 +6,7 @@ import com.rony.springhibernate.model.TeacherSocialMedia;
 import java.util.List;
 
 public interface SocialMediaService {
-    void saveTeacher(SocialMedia socialMedia);
+    void saveSocialMedia(SocialMedia socialMedia);
     List<SocialMedia> findAllSocialMedia();
     void deleteSocialMediaById(Long idSocialMedia);
     void updateSocialMedia(SocialMedia socialMedia);

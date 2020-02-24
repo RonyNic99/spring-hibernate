@@ -1,5 +1,7 @@
 package com.rony.springhibernate.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Set;
@@ -20,6 +22,7 @@ public class SocialMedia implements Serializable {
 
     @OneToMany
     @JoinColumn(name = "id_social_media")
+    @JsonIgnore
     private Set<TeacherSocialMedia> teacherSocialMedias;
 
     public SocialMedia() {

@@ -14,7 +14,7 @@ public class SocialMediaServiceImpl implements SocialMediaService {
     @Autowired
     private SocialMediaDao socialMediaDao;
 
-    public void saveTeacher(SocialMedia socialMedia) {
+    public void saveSocialMedia(SocialMedia socialMedia) {
         socialMediaDao.saveSocialMedia(socialMedia);
     }
 

@@ -1,5 +1,7 @@
 package com.rony.springhibernate.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Set;
@@ -18,11 +20,13 @@ public class Teacher implements Serializable {
     @Column(name="avatar")
     private String avatar;
 
-    @OneToMany(mappedBy = "teacher") //(cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "teacher")//(cascade = CascadeType.ALL)
+    @JsonIgnore
     private Set<Course> courses;
 
     @OneToMany(cascade = CascadeType.ALL)//Si borramos el profesor se borra el nickname
     @JoinColumn(name = "id_teacher")
+    @JsonIgnore
     private Set<TeacherSocialMedia> teacherSocialMedias;
 
     public Teacher() {

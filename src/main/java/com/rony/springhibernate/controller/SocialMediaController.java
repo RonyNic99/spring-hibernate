@@ -6,13 +6,21 @@ import com.rony.springhibernate.util.CustomErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 
@@ -97,4 +105,92 @@ public class SocialMediaController {
         socialMediaService.deleteSocialMediaById(idSocialMedia);
        return new ResponseEntity<SocialMedia>(HttpStatus.OK);
     }
+    public static final String TEACHER_UPLOADED_FOLDER ="img/socialmedia/";
+    //CREATE TEACHER IMAG
+    @RequestMapping(value = "/socialMedia/image", method = RequestMethod.POST, headers = "content-type=multipart/form-data")
+    public ResponseEntity<byte[]> uploadTeacherImage(@RequestParam("idSocialMedia") Long idSocialMedia,
+                                                     @RequestParam("file") MultipartFile multipartFile,
+                                                     UriComponentsBuilder uriComponentsBuilder) {
+        if (idSocialMedia == null) {
+            return new ResponseEntity(new CustomErrorType("id SocialMedia is require"), HttpStatus.CONFLICT);
+        }
+        if (multipartFile.isEmpty()) {
+            return new ResponseEntity(new CustomErrorType("Asignale una imagen"), HttpStatus.CONFLICT);
+        }
+        SocialMedia socialMedia = socialMediaService.findSocialMediaById(idSocialMedia);
+        if (socialMedia == null) {
+            return new ResponseEntity(new CustomErrorType("El idSocialMedia " + idSocialMedia + " no existe"), HttpStatus.CONFLICT);
+        }
+        if (socialMedia.getIcon().isEmpty() || socialMedia.getIcon() != null) {
+            String fileName = socialMedia.getIcon();
+            Path path = Paths.get(fileName);
+            File f = path.toFile();
+            if (f.exists()) {
+                f.delete();
+            }
+        }
+        try {
+            Date date = new Date();
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd-mm-ss");
+            String dateName = simpleDateFormat.format(date);
+            String fileName = String.valueOf(idSocialMedia) + "-pictureTeacher-" + dateName + "." + multipartFile.getContentType().split("/")[1];
+            //Insertar el registo
+            socialMedia.setIcon(TEACHER_UPLOADED_FOLDER + fileName);
+            byte[] bytes = multipartFile.getBytes();
+            Path path = Paths.get(TEACHER_UPLOADED_FOLDER + fileName);
+            Files.write(path, bytes);
+            socialMediaService.updateSocialMedia(socialMedia);
+            return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(bytes);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity(new CustomErrorType("Ocurrio un error en la subida del archivo" + multipartFile), HttpStatus.CONFLICT);
+        }
+    }
+    //GET IMAGE
+    @RequestMapping(value = "/socialMedia/{id}/image",method = RequestMethod.GET)
+    public ResponseEntity<byte[]> getTeacherImage(@PathVariable("id") Long idSocialMedia){
+        if (idSocialMedia == null){
+            new ResponseEntity(new CustomErrorType("id Teacher is require"), HttpStatus.NO_CONTENT);
+        }
+        SocialMedia socialMedia = socialMediaService.findSocialMediaById(idSocialMedia);
+        if (socialMedia == null){
+            new ResponseEntity(new CustomErrorType("id SocialMedia" +idSocialMedia + " is invalid"), HttpStatus.NO_CONTENT);
+        }
+        try {
+            String fileName = socialMedia.getIcon();
+            Path path = Paths.get(fileName);
+            File file = path.toFile();
+            if (!file.exists()){
+                return new ResponseEntity(new CustomErrorType("Imagen no encontrada"), HttpStatus.NO_CONTENT);
+            }
+            byte[] image = Files.readAllBytes(path);
+            return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(image);
+        }catch (Exception e){
+            e.printStackTrace();
+            return new ResponseEntity(new CustomErrorType("error al traer la imagen"), HttpStatus.NO_CONTENT);
+        }
+    }
+    @RequestMapping(value = "/socialMedia/{id}/image",method = RequestMethod.DELETE)
+    public ResponseEntity<?> deleteTeacherImage(@PathVariable("id") Long idSocialMedia){
+        if (idSocialMedia == null) {
+            return new ResponseEntity(new CustomErrorType("id SocialMedia is require"), HttpStatus.CONFLICT);
+        }
+        SocialMedia socialMedia = socialMediaService.findSocialMediaById(idSocialMedia);
+        if (socialMedia == null) {
+            return new ResponseEntity(new CustomErrorType("El idSocialMedia " + idSocialMedia + " no existe"), HttpStatus.CONFLICT);
+        }
+        if(socialMedia.getIcon().isEmpty() || socialMedia.getIcon() == null){
+            return new ResponseEntity(new CustomErrorType("Este profesor no tiene asignada una imagen"), HttpStatus.CONFLICT);
+        }
+        String fileName = socialMedia.getIcon();
+        Path path = Paths.get(fileName);
+        File file = path.toFile();
+        if (file.exists()){
+            file.delete();
+        }
+        socialMedia.setIcon("");
+        socialMediaService.updateSocialMedia(socialMedia);
+        return new ResponseEntity<SocialMedia>(HttpStatus.NO_CONTENT);
+    }
+
 }

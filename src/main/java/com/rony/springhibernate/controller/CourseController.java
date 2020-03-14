@@ -55,24 +55,6 @@ public class CourseController {
         );
         return new ResponseEntity<String>( headers,HttpStatus.CREATED);
     }
-    //POST
-    /*
-    @RequestMapping(value = "/course/{id}",method = RequestMethod.POST,headers = "Accept=application/json")
-    public ResponseEntity<?> assignTeacherCourse(@PathVariable("id") Long idCourse, @RequestParam(value = "teacherId",required = false) Long idTeacher ){
-        Course course = courseService.findCourseById(idCourse);
-        if(course != null){
-            Teacher teacher = teacherService.findTeacherById(idTeacher);
-            if (teacher != null){
-                course.setTeacher(teacher);
-                return new ResponseEntity<>(HttpStatus.OK);
-            }else {
-                return new ResponseEntity<>(new CustomErrorType("IdTeacher invalido"),HttpStatus.NO_CONTENT);
-            }
-        }else {
-            return new ResponseEntity<>(new CustomErrorType("IdCouse invalido"),HttpStatus.NO_CONTENT);
-        }
-
-    }*/
     //UPDATE
     @RequestMapping(value = "/course/{id}", method = RequestMethod.PATCH, headers = "Accept=application/json")
     public ResponseEntity<Course> updateSocialMedia(@PathVariable("id") Long idCourse,@RequestBody Course course){

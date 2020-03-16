@@ -24,9 +24,8 @@ public class Teacher implements Serializable {
     @JsonIgnore
     private Set<Course> courses;
 
-    @OneToMany(cascade = CascadeType.ALL)//Si borramos el profesor se borra el nickname
+    @OneToMany(fetch = FetchType.EAGER,cascade = CascadeType.ALL)//Si borramos el profesor se borra el nickname
     @JoinColumn(name = "id_teacher")
-    @JsonIgnore
     private Set<TeacherSocialMedia> teacherSocialMedias;
 
     public Teacher() {

@@ -4,6 +4,7 @@ import com.rony.springhibernate.model.Course;
 import com.rony.springhibernate.model.SocialMedia;
 import com.rony.springhibernate.model.Teacher;
 import com.rony.springhibernate.model.TeacherSocialMedia;
+import com.rony.springhibernate.service.CourseService;
 import com.rony.springhibernate.service.SocialMediaService;
 import com.rony.springhibernate.service.TeacherService;
 import com.rony.springhibernate.util.CustomErrorType;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.persistence.Column;
 import javax.swing.*;
 import java.io.File;
 import java.nio.file.Files;
@@ -32,6 +34,8 @@ public class TeacherController {
     private TeacherService teacherService;
     @Autowired
     private SocialMediaService socialMediaService;
+    @Autowired
+    private CourseService courseService;
 
     //GET
     @RequestMapping(value = "/teacher",method = RequestMethod.GET,headers = "Accept=application/json")
@@ -159,12 +163,14 @@ public class TeacherController {
         if (teacher.getIdTeacher() == null){
             return new ResponseEntity(new CustomErrorType("Necesitamos al menos idTeacher , idSocialMedia and nickname"), HttpStatus.NO_CONTENT);
         }
+
         Teacher teachersave = teacherService.findTeacherById(teacher.getIdTeacher());
+        System.out.println("Entro");
         if (teachersave == null){
             return new ResponseEntity(new CustomErrorType("El idTeacher "+ teacher.getIdTeacher() + " no existe"), HttpStatus.NO_CONTENT);
         }
 
-        if (teachersave.getTeacherSocialMedias().size() == 0){
+        if (teacher.getTeacherSocialMedias().size() == 0){
             return new ResponseEntity(new CustomErrorType("Necesitamos que el Objeto Teacher que me estas mandando contenga IdSocialmedia y nickname"), HttpStatus.NO_CONTENT);
         }else{
             Iterator<TeacherSocialMedia> i = teacher.getTeacherSocialMedias().iterator();
@@ -174,10 +180,12 @@ public class TeacherController {
                     return new ResponseEntity(new CustomErrorType("Necesitamos que el objeto Teacher que me estas mandando contenga IdSocialMedia y nick name"), HttpStatus.NO_CONTENT);
                 }else{
                     TeacherSocialMedia tsmAux = socialMediaService.findSocialMediaByIdAndNickName(teacherSocialMedia.getSocialMedia().getIdSocialMedia(),teacherSocialMedia.getNickname());
+                    System.out.println("Entro Al else");
                     if (tsmAux != null){
-                        return new ResponseEntity(new CustomErrorType("De IdSocialMedia" +teacherSocialMedia.getSocialMedia().getIdSocialMedia() + " con el nickname " + teacherSocialMedia.getNickname() +" Ya existe "), HttpStatus.NO_CONTENT);
+                        return new ResponseEntity(new CustomErrorType("De IdSocialMedia" +teacherSocialMedia.getSocialMedia().getIdSocialMedia() + " con el nickname " + teacherSocialMedia.getNickname() +" Ya existe "), HttpStatus.CONFLICT);
                     }
                     SocialMedia socialMedia = socialMediaService.findSocialMediaById(teacherSocialMedia.getSocialMedia().getIdSocialMedia());
+                    System.out.println("Entro al else 2");
                     if (socialMedia == null){
                         return new ResponseEntity(new CustomErrorType("El idSocialMedia "+teacherSocialMedia.getSocialMedia().getIdSocialMedia() +" no fue encontrado"), HttpStatus.NO_CONTENT);
                     }
@@ -189,6 +197,7 @@ public class TeacherController {
                     }else{
                         LinkedList<TeacherSocialMedia> teacherSocialMedias = new LinkedList<>();
                         teacherSocialMedias.addAll(teachersave.getTeacherSocialMedias());
+                        System.out.println("Entro a la parte que queriamos");
                         for (int j = 0; j < teacherSocialMedias.size() ; j++) {
                             TeacherSocialMedia teacherSocialMedia2 = teacherSocialMedias.get(j);
                             if (teacherSocialMedia.getTeacher().getIdTeacher() == teacherSocialMedia2.getTeacher().getIdTeacher()
@@ -211,8 +220,40 @@ public class TeacherController {
         }
 
         teacherService.updateTeacher(teachersave);
+        System.out.println("Entro");
         return new ResponseEntity<Teacher>(teachersave,HttpStatus.OK);
 
+    }
+
+    @RequestMapping(value = "teachers/course",method = RequestMethod.PATCH,headers = "Accept=application/json")
+    public ResponseEntity<?> assignCourse(@RequestBody Teacher teacher,UriComponentsBuilder uriComponentsBuilder){
+        if (teacher.getIdTeacher() == null){
+            return new ResponseEntity(new CustomErrorType("Necesitamos al menos Course"), HttpStatus.NO_CONTENT);
+        }
+        Teacher teachersave = teacherService.findTeacherById(teacher.getIdTeacher());
+        if (teachersave == null){
+            return new ResponseEntity(new CustomErrorType("El idTeacher "+ teacher.getIdTeacher() + " no existe"), HttpStatus.NO_CONTENT);
+        }
+        if (teacher.getCourses().size() == 0) {
+            return new ResponseEntity(new CustomErrorType("Necesitamos que el Objeto Teacher que me estas mandando contenga IdCourse y nickname"), HttpStatus.NO_CONTENT);
+        }else{
+            Iterator<Course> i = teacher.getCourses().iterator();
+            while (i.hasNext()){
+                Course course = i.next();
+                if (course.getProject() == null || course.getName() == null || course.getThemes()== null){
+                    return new ResponseEntity(new CustomErrorType("Necesitamos que el objeto Courses contenga todos los atributos"), HttpStatus.NO_CONTENT);
+                }else {
+                    Course courseAux = courseService.findCourseById(course.getIdCourse());
+                    if (courseAux != null){
+                        return new ResponseEntity(new CustomErrorType("Ya le asignaste este curso "+ course.getName() + " a este profesor"),HttpStatus.CONFLICT);
+                    }
+                    course.setTeacher(teachersave);
+                    teachersave.getCourses().add(course);
+                }
+            }
+        }
+        teacherService.updateTeacher(teachersave);
+        return new ResponseEntity<Teacher>(teachersave,HttpStatus.OK);
     }
 
 }
